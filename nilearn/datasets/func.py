@@ -2127,3 +2127,52 @@ def fetch_development_fmri(n_subjects=None, reduce_confounds=True,
 
     return Bunch(func=funcs, confounds=regressors, phenotypic=participants,
                  description=fdescr)
+
+def fetch_surf_intertva_voice_localizer_task(data_dir=None, url=None, verbose=1):
+    """Fetch single-trial beta maps for one subject (sub-41) of the InterTVA
+    dataset. The subjects passively listened to 144 vocal or non-vocal sounds.
+    The beta maps shipped here have been projected on the surface of the left
+    hemisphere of the fsaverage5 mesh.
+
+    The InterTVA dataset is fully available at
+    https://openneuro.org/datasets/ds001771
+
+    Parameters
+    ----------
+    data_dir: string, optional
+        Path of the data directory. Used to force data storage in a specified
+        location.
+
+    url: string, optional
+        Override download URL. Used for test only (or if you setup a mirror of
+        the data).
+
+    verbose: int, optional
+        verbosity level (0 means no message).
+
+    Returns
+    -------
+    data: Bunch
+        Dictionary-like object, the interest attributes are :
+        'beta_*': string, giving paths to gifti beta maps
+        'roi': string, giving path a gifti region mask
+        'labels': string, giving path to a tsv file containing the labels
+    """
+
+    if url is None:
+        url = 'https://osf.io/aekp7/download'
+
+    dataset_dir = _get_dataset_dir('intertva', data_dir=data_dir)
+
+    opts = {'uncompress': True}
+    names = ['sphere_right', 'sphere_left']
+    n_beta = 144
+    filenames = [('fsaverage5.lh.beta_{:04d}.gii'.format(beta), url, opts)
+                 for beta in np.arange(1,n_beta+1)]
+    _fetch_files(dataset_dir, filenames)
+    result = {
+        name: os.path.join(dataset_dir, '{}.gii'.format(name))
+        for name in names}
+
+    #result['description'] = str(_get_dataset_descr('fsaverage5_sphere'))
+    return Bunch(**result)
